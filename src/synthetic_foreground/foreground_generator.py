@@ -13,7 +13,7 @@ class ForegroundGenerator(synthetic_heatmap.generator.Generator):
                  foreground_images_directory,
                  scale_range=[0.1, 0.7],  # The ratio of the foreground image with respect to the background
                  rotation_range=[0, 2 * math.pi],
-                 hue_delta_range=[-30, 30],
+                 hue_delta_range=[-15, 15],
                  foreground_luminance_inverse_threshold=220):
         parameters_dict = {'scale_range': scale_range,
                            'rotation_range': rotation_range,
@@ -72,10 +72,33 @@ class ForegroundGenerator(synthetic_heatmap.generator.Generator):
         hue_delta = self.RandomValueInRange('hue_delta_range', must_be_rounded=True) % 180
         foreground_hls[:, :, 0] += hue_delta
         foreground_img = cv2.cvtColor(foreground_hls, cv2.COLOR_HLS2BGR)
+        # Choose an anchor point
+        anchor_pt = (int( (image_sizeHW[1] - foreground_img.shape[1]) * random.random()), int((image_sizeHW[0] - foreground_img.shape[0]) * random.random()))
+        # Draw the foreground
+        for y in range(anchor_pt[1], anchor_pt[1] + foreground_img.shape[0]):
+            for x in range(anchor_pt[0], anchor_pt[0] + foreground_img.shape[1]):
+                foreground_pt = (x - anchor_pt[0], y - anchor_pt[1])
+                if foreground_mask[foreground_pt[1], foreground_pt[0]] > 0:
+                    input_image[y, x, :] = foreground_img[foreground_pt[1], foreground_pt[0]]
+                    heatmap[y, x] = 255
+        # Remove a row of pixels in the heatmap
+        heatmap = cv2.erode(heatmap, kernel_3x3)
+
+        # Blur the heatmap periphery
+        kernel_5x5 = np.ones((5, 5), dtype=np.uint8)
+        dilated_heatmap = cv2.dilate(heatmap, kernel_5x5)
+        eroded_heatmap = cv2.erode(heatmap, kernel_3x3)
+        heatmap_periphery = dilated_heatmap - eroded_heatmap
+        blurred_img = cv2.blur(input_image, (3, 3))
+        for y in range(input_image.shape[0]):
+            for x in range(input_image.shape[1]):
+                if heatmap_periphery[y, x] > 0:
+                    input_image[y, x, :] = blurred_img[y, x]
+
 
         if debug_directory is not None:
             cv2.imwrite(os.path.join(debug_directory, "ForegroundGenerator_Generate_foregroundMask.png"), foreground_mask)
-
-        input_image[0: foreground_img.shape[0], 0: foreground_img.shape[1], :] = foreground_img
+            cv2.imwrite(os.path.join(debug_directory, "ForegroundGenerator_Generate_heatmapPeriphery.png"), heatmap_periphery)
+        #input_image[0: foreground_img.shape[0], 0: foreground_img.shape[1], :] = foreground_img
 
         return (input_image, heatmap)
