@@ -6,6 +6,8 @@ import ast
 import architectures.heatmaps as arch
 import torch
 import numpy as np
+import timeit
+from timeit import default_timer as timer
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)-15s %(levelname)s \t%(message)s')
 
@@ -31,7 +33,9 @@ def main(
     neural_network.eval()
 
     capture = cv2.VideoCapture(cameraID)
-
+    number_of_captures = 0
+    captures_period = 50
+    start = timer()
     while True:
         ret_val, image = capture.read()
         if ret_val == True:
@@ -54,6 +58,15 @@ def main(
             # Display the image
             cv2.imshow('image', image)
             cv2.imshow('heatmap', heatmap)
+
+            number_of_captures += 1
+            if number_of_captures == captures_period:
+                end = timer()
+                delay_in_seconds = end - start
+                fps = number_of_captures/delay_in_seconds
+                logging.info("rate = {} fps".format(fps))
+                start = timer()
+                number_of_captures = 0
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
