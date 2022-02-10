@@ -11,13 +11,15 @@ import imutils
 class ForegroundGenerator(synthetic_heatmap.generator.Generator):
     def __init__(self,
                  foreground_images_directory,
-                 scale_range=[0.1, 0.7],  # The ratio of the foreground image with respect to the background
+                 scale_range=[0.2, 0.7],  # The ratio of the foreground image with respect to the background
                  rotation_range=[0, 2 * math.pi],
                  hue_delta_range=[-15, 15],
+                 luminance_delta_range=[-15, 15],
                  foreground_luminance_inverse_threshold=220):
         parameters_dict = {'scale_range': scale_range,
                            'rotation_range': rotation_range,
-                           'hue_delta_range': hue_delta_range}
+                           'hue_delta_range': hue_delta_range,
+                           'luminance_delta_range': luminance_delta_range}
         super().__init__(parameters_dict)
 
         self.foreground_images_directory = foreground_images_directory
@@ -68,10 +70,18 @@ class ForegroundGenerator(synthetic_heatmap.generator.Generator):
         kernel_3x3 = np.ones((3, 3), dtype=np.uint8)
         foreground_mask = cv2.erode(foreground_mask, kernel_3x3)
         foreground_mask = cv2.dilate(foreground_mask, kernel_3x3)
+        foreground_hls = foreground_hls.astype(np.int32)
         # Hue change
-        hue_delta = self.RandomValueInRange('hue_delta_range', must_be_rounded=True) % 180
+        hue_delta = self.RandomValueInRange('hue_delta_range', must_be_rounded=True)
         foreground_hls[:, :, 0] += hue_delta
+
+        # Luminance change
+        luminance_delta = self.RandomValueInRange('luminance_delta_range', must_be_rounded=True)
+        foreground_hls[:, :, 1] += luminance_delta
+
+        foreground_hls = np.clip(foreground_hls, 0, 255).astype(np.uint8)
         foreground_img = cv2.cvtColor(foreground_hls, cv2.COLOR_HLS2BGR)
+
         # Choose an anchor point
         anchor_pt = (int( (image_sizeHW[1] - foreground_img.shape[1]) * random.random()), int((image_sizeHW[0] - foreground_img.shape[0]) * random.random()))
         # Draw the foreground
