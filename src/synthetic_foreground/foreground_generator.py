@@ -74,10 +74,12 @@ class ForegroundGenerator(synthetic_heatmap.generator.Generator):
         # Hue change
         hue_delta = self.RandomValueInRange('hue_delta_range', must_be_rounded=True)
         foreground_hls[:, :, 0] += hue_delta
+        foreground_hls[:, :, 0] = foreground_hls[:, :, 0] % 180
 
         # Luminance change
         luminance_delta = self.RandomValueInRange('luminance_delta_range', must_be_rounded=True)
         foreground_hls[:, :, 1] += luminance_delta
+        foreground_hls[:, :, 1] = foreground_hls[:, :, 1] % 256
 
         foreground_hls = np.clip(foreground_hls, 0, 255).astype(np.uint8)
         foreground_img = cv2.cvtColor(foreground_hls, cv2.COLOR_HLS2BGR)
