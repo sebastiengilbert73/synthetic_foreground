@@ -33,7 +33,8 @@ class ForegroundGenerator(synthetic_heatmap.generator.Generator):
                  image_sizeHW,
                  maximum_number_of_trials=None,
                  debug_directory=None,
-                 background_image=None
+                 background_image=None,
+                 add_uniform_square=True
                  ):
         heatmap = np.zeros(image_sizeHW, dtype=np.uint8)
         # = np.ones((3, 3), dtype=np.uint8)
@@ -46,10 +47,21 @@ class ForegroundGenerator(synthetic_heatmap.generator.Generator):
         if input_image.shape != image_sizeHW:
             input_image = cv2.resize(input_image, image_sizeHW)
 
+        # Add a square of uniform color: the goal is to prevent the neural network to rely on a specific color
+        if add_uniform_square:
+            square_scale = self.RandomValueInRange('scale_range')
+            square_size = round(square_scale * input_image.shape[0])
+            square_anchor_pt = (int((image_sizeHW[1] - square_size) * random.random()),
+                         int((image_sizeHW[0] - square_size) * random.random()))
+            square_color = np.random.randint(0, 256, size=3).tolist()
+            cv2.rectangle(input_image, square_anchor_pt, (square_anchor_pt[0] + square_size, square_anchor_pt[1] + square_size), square_color, thickness=-1)
 
         # Select a foreground image
         foreground_filepath = random.choice(self.foreground_image_filepaths)
         foreground_img = cv2.imread(foreground_filepath, cv2.IMREAD_COLOR)
+        # Flip half of the time
+        if random.random() > 0.5:
+            foreground_img = cv2.flip(foreground_img, flipCode=1)
         if debug_directory is not None:
             cv2.imwrite(os.path.join(debug_directory, "ForegroundGenerator_Generate_background.png"), input_image)
             cv2.imwrite(os.path.join(debug_directory, "ForegroundGenerator_Generate_foreground.png"), foreground_img)
