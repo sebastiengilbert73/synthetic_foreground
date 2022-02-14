@@ -59,3 +59,17 @@ class Batiscan(nn.Module):
         activation6 = self.convTransposed3(activation5)  # (N, 1, 256, 256)
         output_tsr = torch.sigmoid(activation6 )  # (N, 1, 256, 256)
         return output_tsr
+
+class Cascapedia(nn.Module):
+    def __init__(self, number_of_channels=(16, 32, 64), dropout_ratio=0.5):
+        super(Cascapedia, self).__init__()
+        self.batiscan = Batiscan(number_of_channels=number_of_channels, dropout_ratio=dropout_ratio)
+
+    def forward(self, input_tsr):  # input_tsr.shape = (N, 3, 256, 256)
+        blue_output_tsr = self.batiscan(input_tsr[:, 0, :, :].unsqueeze(1))
+        green_output_tsr = self.batiscan(input_tsr[:, 1, :, :].unsqueeze(1))
+        red_output_tsr = self.batiscan(input_tsr[:, 2, :, :].unsqueeze(1))
+        output_tsr = blue_output_tsr  # (N, 1, 256, 256)
+        output_tsr = torch.minimum(output_tsr, green_output_tsr)
+        output_tsr = torch.minimum(output_tsr, red_output_tsr)
+        return output_tsr
