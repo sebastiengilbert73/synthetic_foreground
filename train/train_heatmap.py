@@ -31,7 +31,11 @@ class ImageHeatmapDataset(Dataset):
         if input_img.shape != self.image_sizeHW:
             input_img = cv2.resize(input_img, self.image_sizeHW)
         if self.preprocessing is not None:
-            raise NotImplementedError("ImageHeatmapDataset.__getitem__(): Not implemented preprocessing '{}'".format(self.preprocessing))
+            if preprocessing == 'grayscale':
+                input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)  # (W, W)
+                input_img = np.expand_dims(input_img, axis=2)  # (H, W) -> (H, W, 1)
+            else:
+                raise NotImplementedError("ImageHeatmapDataset.__getitem__(): Not implemented preprocessing '{}'".format(self.preprocessing))
 
         input_img = np.moveaxis(input_img, 2, 0)  # (H, W, C) -> (C, H, W)
         output_img = cv2.imread(output_img_filepath, cv2.IMREAD_GRAYSCALE)
@@ -73,7 +77,11 @@ class GeneratedImageHeatmapDataset(Dataset):
     def __getitem__(self, idx):
         (input_img, heatmap) = self.generator.Generate(self.image_sizeHW)
         if self.preprocessing is not None:
-            raise NotImplementedError("GeneratedImageHeatmapDataset.__getitem__(): Not implemented preprocessing '{}'".format(self.preprocessing))
+            if preprocessing == 'grayscale':
+                input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)  # (W, W)
+                input_img = np.expand_dims(input_img, axis=2)  # (H, W) -> (H, W, 1)
+            else:
+                raise NotImplementedError("GeneratedImageHeatmapDataset.__getitem__(): Not implemented preprocessing '{}'".format(self.preprocessing))
         input_img = np.moveaxis(input_img, 2, 0)  # (H, W, C) -> (C, H, W)
         heatmap = np.expand_dims(heatmap, axis=0)  # (H, W) -> (1, H, W)
 
@@ -158,6 +166,8 @@ def main(
     neural_network = None
     if architecture == 'Assinica_16_32_64':
         neural_network = arch.Assinica(number_of_channels=(16, 32, 64), dropout_ratio=0.5)
+    elif architecture == 'Cascapedia_16_32_64':
+        neural_network = arch.Cascapedia(number_of_channels=(16, 32, 64), dropout_ratio=0.5)
     else:
         raise NotImplementedError("train_heatmap.main(): Not implemented architecture '{}'".format(architecture))
 
