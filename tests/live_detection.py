@@ -27,6 +27,8 @@ def main(
     neural_network = None
     if os.path.basename(args.neuralNetworkFilepath).startswith("Assinica_16_32_64_"):
         neural_network = arch.Assinica(number_of_channels=(16, 32, 64), dropout_ratio=0.5)
+    elif os.path.basename(args.neuralNetworkFilepath).startswith('Cascapedia_16_32_64'):
+        neural_network = arch.Cascapedia(number_of_channels=(16, 32, 64), dropout_ratio=0.5)
     else:
         raise NotImplementedError("live_detection.main(): Could not identify the architecture of '{}'".format(neuralNetworkFilepath))
     neural_network.load_state_dict(torch.load(neuralNetworkFilepath, map_location=torch.device('cpu')))
