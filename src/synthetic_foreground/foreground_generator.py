@@ -34,7 +34,7 @@ class ForegroundGenerator(synthetic_heatmap.generator.Generator):
                  maximum_number_of_trials=None,
                  debug_directory=None,
                  background_image=None,
-                 add_uniform_square=True
+                 add_uniform_square=False
                  ):
         heatmap = np.zeros(image_sizeHW, dtype=np.uint8)
         # = np.ones((3, 3), dtype=np.uint8)
