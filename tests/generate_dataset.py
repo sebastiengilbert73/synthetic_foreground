@@ -17,7 +17,8 @@ def main(
         rotationRange,
         hueDeltaRange,
         luminanceDeltaRange,
-        foregroundLuminanceInverseThreshold
+        foregroundLuminanceInverseThreshold,
+        numberOfForegroundObjects
 ):
     logging.info("generate_dataset.main()")
 
@@ -38,7 +39,8 @@ def main(
             image_sizeHW=imageSizeHW,
             maximum_number_of_trials=None,
             debug_directory=None,
-            background_image=None
+            background_image=None,
+            number_of_foreground_objects=numberOfForegroundObjects
         )
         image_filepath = os.path.join(outputDirectory, "image_{}.png".format(pairNdx))
         heatmap_filepath = os.path.join(outputDirectory, "heatmap_{}.png".format(pairNdx))
@@ -61,6 +63,7 @@ if __name__ == '__main__':
     parser.add_argument('--hueDeltaRange', help="The range of hue change for the foreground image. Default: '(-15, 15)'", default='(-15, 15)')
     parser.add_argument('--luminanceDeltaRange', help="The range of luminance change for the foreground image. Default: '(-15, 15)'", default='(-15, 15)')
     parser.add_argument('--foregroundLuminanceInverseThreshold', help="The luminance inverse threshold, to segment the foreground object. Default: 220", type=int, default=220)
+    parser.add_argument('--numberOfForegroundObjects', help="The number of foreground objects per image. Default: 1", type=int, default=1)
     args = parser.parse_args()
 
     imageSizeHW = ast.literal_eval(args.imageSizeHW)
@@ -78,5 +81,6 @@ if __name__ == '__main__':
         rotationRange,
         hueDeltaRange,
         luminanceDeltaRange,
-        args.foregroundLuminanceInverseThreshold
+        args.foregroundLuminanceInverseThreshold,
+        args.numberOfForegroundObjects
     )
