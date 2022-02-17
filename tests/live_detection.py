@@ -47,7 +47,10 @@ def main(
 
             input_tsr = None
             if preprocessing is not None:
-                raise NotImplementedError("live_detection.main(): Not implemented preprocessing '{}'".format(preprocessing))
+                if preprocessing == 'blur3x3':
+                    image = cv2.blur(image, (3, 3))
+                else:
+                    raise NotImplementedError("live_detection.main(): Not implemented preprocessing '{}'".format(preprocessing))
             # image.shape = (H, W, C)
             if input_tsr is None:
                 input_img = np.moveaxis(image, 2, 0)  # (H, W, C) -> (C, H, W)
