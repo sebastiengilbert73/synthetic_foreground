@@ -73,3 +73,29 @@ class Cascapedia(nn.Module):
         output_tsr = torch.minimum(output_tsr, green_output_tsr)
         output_tsr = torch.minimum(output_tsr, red_output_tsr)
         return output_tsr
+
+class Daaquam(nn.Module):
+    def __init__(self, number_of_channels=(32, 64), dropout_ratio=0.5):
+        super(Daaquam, self).__init__()
+        self.number_of_channels1 = number_of_channels[0]
+        self.number_of_channels2 = number_of_channels[1]
+        self.conv1 = nn.Conv2d(3, self.number_of_channels1, kernel_size=5, padding=2)
+        self.conv2 = nn.Conv2d(self.number_of_channels1, self.number_of_channels2, kernel_size=5, padding=2)
+        self.batchnorm2d = nn.BatchNorm2d(self.number_of_channels1)
+        self.dropout2d = nn.Dropout2d(p=dropout_ratio)
+        self.convTransposed1 = nn.ConvTranspose2d(self.number_of_channels2, self.number_of_channels1, kernel_size=3,
+                                                  stride=2, padding=1, output_padding=1)
+        self.convTransposed2 = nn.ConvTranspose2d(self.number_of_channels1, 1, kernel_size=3,
+                                                  stride=2, padding=1, output_padding=1)
+
+    def forward(self, inputTsr):  # inputTsr.shape = (N, 3, 256, 256)
+        activation1 = F.relu(F.max_pool2d(self.conv1(inputTsr), 2))  # (N, C1, 128, 128)
+        activation1 = self.batchnorm2d(activation1)
+        activation2 = F.relu(F.max_pool2d(self.conv2(activation1), 2))  # (N, C2, 64, 64)
+        activation2 = self.dropout2d(activation2)
+
+        activation3 = F.relu(self.convTransposed1(activation2))  # (N, C1, 128, 128)
+        activation3 = self.dropout2d(activation3)
+        activation4 = F.relu(self.convTransposed2(activation3))  # (N, 1, 256, 256)
+        output_tsr = torch.sigmoid(activation4)  # (N, 1, 256, 256)
+        return output_tsr
