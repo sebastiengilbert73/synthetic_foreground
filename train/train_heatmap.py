@@ -165,9 +165,11 @@ def main(
     # Create the neural network
     neural_network = None
     if architecture == 'Assinica_16_32_64':
-        neural_network = arch.Assinica(number_of_channels=(16, 32, 64), dropout_ratio=0.5)
+        neural_network = arch.Assinica(number_of_channels=(16, 32, 64), dropout_ratio=dropoutRatio)
     elif architecture == 'Cascapedia_16_32_64':
-        neural_network = arch.Cascapedia(number_of_channels=(16, 32, 64), dropout_ratio=0.5)
+        neural_network = arch.Cascapedia(number_of_channels=(16, 32, 64), dropout_ratio=dropoutRatio)
+    elif architecture == 'Daaquam_32_64':
+        neural_network = arch.Daaquam(number_of_channels=(32, 64), dropout_ratio=dropoutRatio)
     else:
         raise NotImplementedError("train_heatmap.main(): Not implemented architecture '{}'".format(architecture))
 
