@@ -58,7 +58,8 @@ class GeneratedImageHeatmapDataset(Dataset):
                  rotation_range,
                  hue_delta_range,
                  luminance_delta_range,
-                 foreground_luminance_inverse_threshold):
+                 foreground_luminance_inverse_threshold,
+                 number_of_foreground_objects):
         self.generator = foreground_generator.ForegroundGenerator(
             foreground_images_directory=foreground_images_directory,
             scale_range=scale_range,  # The ratio of the foreground image with respect to the background
@@ -70,12 +71,13 @@ class GeneratedImageHeatmapDataset(Dataset):
         self.image_sizeHW = image_sizeHW
         self.dataset_size = dataset_size  # Regulates the number of batches in an epoch
         self.preprocessing = preprocessing
+        self.number_of_foreground_objects = number_of_foreground_objects
 
     def __len__(self):
         return self.dataset_size
 
     def __getitem__(self, idx):
-        (input_img, heatmap) = self.generator.Generate(self.image_sizeHW)
+        (input_img, heatmap) = self.generator.Generate(self.image_sizeHW, number_of_foreground_objects=number_of_foreground_objects)
         if self.preprocessing is not None:
             if preprocessing == 'grayscale':
                 input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)  # (W, W)
@@ -113,7 +115,8 @@ def main(
         rotationRange,
         hueDeltaRange,
         luminanceDeltaRange,
-        foregroundLuminanceInverseThreshold
+        foregroundLuminanceInverseThreshold,
+        numberOfForegroundObjects
 ):
     logging.info("train_heatmap.main() useCuda = {}".format(useCuda))
     device = 'cpu'
@@ -146,7 +149,8 @@ def main(
         rotation_range=rotationRange,
         hue_delta_range=hueDeltaRange,
         luminance_delta_range=luminanceDeltaRange,
-        foreground_luminance_inverse_threshold=foregroundLuminanceInverseThreshold)
+        foreground_luminance_inverse_threshold=foregroundLuminanceInverseThreshold,
+        number_of_foreground_objects=numberOfForegroundObjects)
 
     test_tsr, test_target_heatmap = validation_dataset[0]
     if type(test_tsr) == list:
@@ -287,6 +291,7 @@ if __name__ == '__main__':
     parser.add_argument('--foregroundLuminanceInverseThreshold',
                         help="The luminance inverse threshold, to segment the foreground object. Default: 220",
                         type=int, default=220)
+    parser.add_argument('--numberOfForegroundObjects', help="The number of generated foreground objects. Default: 1", type=int, default=1)
     args = parser.parse_args()
 
     random.seed(args.randomSeed)
@@ -322,5 +327,6 @@ if __name__ == '__main__':
         rotationRange,
         hueDeltaRange,
         luminanceDeltaRange,
-        args.foregroundLuminanceInverseThreshold
+        args.foregroundLuminanceInverseThreshold,
+        args.numberOfForegroundObjects
     )
