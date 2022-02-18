@@ -77,7 +77,7 @@ class GeneratedImageHeatmapDataset(Dataset):
         return self.dataset_size
 
     def __getitem__(self, idx):
-        (input_img, heatmap) = self.generator.Generate(self.image_sizeHW, number_of_foreground_objects=number_of_foreground_objects)
+        (input_img, heatmap) = self.generator.Generate(self.image_sizeHW, number_of_foreground_objects=self.number_of_foreground_objects)
         if self.preprocessing is not None:
             if preprocessing == 'grayscale':
                 input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)  # (W, W)
