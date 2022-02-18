@@ -96,6 +96,6 @@ class Daaquam(nn.Module):
 
         activation3 = F.relu(self.convTransposed1(activation2))  # (N, C1, 128, 128)
         activation3 = self.dropout2d(activation3)
-        activation4 = F.relu(self.convTransposed2(activation3))  # (N, 1, 256, 256)
+        activation4 = self.convTransposed2(activation3)  # (N, 1, 256, 256)
         output_tsr = torch.sigmoid(activation4)  # (N, 1, 256, 256)
         return output_tsr
