@@ -106,6 +106,9 @@ class Resnet50(nn.Module):
     def __init__(self):
         super(Resnet50, self).__init__()
         self.resnet50 = torchvision.models.segmentation.fcn_resnet50(pretrained=True, num_classes=21)
+        # Freeze all the parameters
+        for param in self.resnet50.parameters():
+            param.requires_grad = False
         # Replace the heads to have 2 output channels
         self.resnet50.classifier = fcn.FCNHead(2048, 2)
         self.resnet50.aux_classifier = fcn.FCNHead(1024, 2)
