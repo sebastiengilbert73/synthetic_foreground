@@ -183,7 +183,7 @@ def main(
 
     # Optimization parameters
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(neural_network.parameters(), lr=learningRate, betas=(momentum, 0.999),
+    optimizer = optim.Adam( filter(lambda p: p.requires_grad, neural_network.parameters()), lr=learningRate, betas=(momentum, 0.999),
                            weight_decay=weightDecay)
 
     lowest_validation_loss = sys.float_info.max
