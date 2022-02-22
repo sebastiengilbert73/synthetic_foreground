@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
+import torchvision.models.segmentation.fcn as fcn
 
 class Assinica(nn.Module):
     def __init__(self, number_of_channels=(16, 32, 64), dropout_ratio=0.5):
@@ -99,3 +101,17 @@ class Daaquam(nn.Module):
         activation4 = self.convTransposed2(activation3)  # (N, 1, 256, 256)
         output_tsr = torch.sigmoid(activation4)  # (N, 1, 256, 256)
         return output_tsr
+
+class Resnet50(nn.Module):
+    def __init__(self):
+        super(Resnet50, self).__init__()
+        self.resnet50 = torchvision.models.segmentation.fcn_resnet50(True, num_classes=21)
+        self.resnet50.classifier = fcn.FCNHead(2048, 2)
+        self.resnet50.aux_classifier = fcn.FCNHead(1024, 2)
+
+    def forward(self, input_tsr):  # input_tsr.shape = (N, 3, 256, 256)
+        output_2channels_tsr = self.resnet50(input_tsr)['out']  # (N, 2, 256, 256)
+        output_tsr = torch.nn.functional.softmax(output_2channels_tsr, 1)[:, 1, :, :].unsqueeze(1)  # (N, 1, 256, 256)
+        return output_tsr
+
+
