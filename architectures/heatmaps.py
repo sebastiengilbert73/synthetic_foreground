@@ -105,7 +105,8 @@ class Daaquam(nn.Module):
 class Resnet50(nn.Module):
     def __init__(self):
         super(Resnet50, self).__init__()
-        self.resnet50 = torchvision.models.segmentation.fcn_resnet50(True, num_classes=21)
+        self.resnet50 = torchvision.models.segmentation.fcn_resnet50(pretrained=True, num_classes=21)
+        # Replace the heads to have 2 output channels
         self.resnet50.classifier = fcn.FCNHead(2048, 2)
         self.resnet50.aux_classifier = fcn.FCNHead(1024, 2)
 
