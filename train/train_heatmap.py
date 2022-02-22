@@ -174,6 +174,8 @@ def main(
         neural_network = arch.Cascapedia(number_of_channels=(16, 32, 64), dropout_ratio=dropoutRatio)
     elif architecture == 'Daaquam_32_64':
         neural_network = arch.Daaquam(number_of_channels=(32, 64), dropout_ratio=dropoutRatio)
+    elif architecture == 'Resnet50':
+        neural_network = arch.Resnet50()
     else:
         raise NotImplementedError("train_heatmap.main(): Not implemented architecture '{}'".format(architecture))
 
